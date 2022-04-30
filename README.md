@@ -1,3 +1,3 @@
-## 584 Final Project
+# 584 Final Project
 
-# Bias in HR Analytics
+## Bias in HR Analytics

@@ -1,1 +1,322 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"pygments_lexer":"ipython3","nbconvert_exporter":"python","version":"3.6.4","file_extension":".py","codemirror_mode":{"name":"ipython","version":3},"name":"python","mimetype":"text/x-python"}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"code","source":"# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.364999Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.365508Z\",\"iopub.status.idle\":\"2022-05-05T19:41:20.384036Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.365438Z\",\"shell.execute_reply\":\"2022-05-05T19:41:20.378173Z\"}}\nimport numpy as np # linear algebra\nimport pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\nimport os\n\n# %% [markdown]\n# ### Load Data\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.388856Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.390748Z\",\"iopub.status.idle\":\"2022-05-05T19:41:20.635869Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.390668Z\",\"shell.execute_reply\":\"2022-05-05T19:41:20.634804Z\"}}\ntrain = pd.read_csv('../input/hr-ana/train.csv')\ntest = pd.read_csv('../input/hr-ana/test.csv')\ntrain.head()\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:50:54.725433Z\",\"iopub.execute_input\":\"2022-05-05T19:50:54.72653Z\",\"iopub.status.idle\":\"2022-05-05T19:50:54.746103Z\",\"shell.execute_reply.started\":\"2022-05-05T19:50:54.726482Z\",\"shell.execute_reply\":\"2022-05-05T19:50:54.743668Z\"}}\nfiles.download('../input/hr-ana/train.csv')\n\n# %% [markdown]\n# ### EDA\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.64158Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.64526Z\",\"iopub.status.idle\":\"2022-05-05T19:41:20.703516Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.645196Z\",\"shell.execute_reply\":\"2022-05-05T19:41:20.702422Z\"}}\ntrain.info()\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.709311Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.713061Z\",\"iopub.status.idle\":\"2022-05-05T19:41:20.723694Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.712983Z\",\"shell.execute_reply\":\"2022-05-05T19:41:20.721952Z\"}}\ntest.shape\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.73185Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.734308Z\",\"iopub.status.idle\":\"2022-05-05T19:41:20.92179Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.734264Z\",\"shell.execute_reply\":\"2022-05-05T19:41:20.920459Z\"}}\nimport seaborn as sns\nimport matplotlib.pyplot as plt\nimport matplotlib.gridspec as gridspec\nfrom scipy import stats\nimport matplotlib.style as style\n\nsns.countplot(train.is_promoted)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.925663Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.926315Z\",\"iopub.status.idle\":\"2022-05-05T19:41:20.934829Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.926267Z\",\"shell.execute_reply\":\"2022-05-05T19:41:20.933607Z\"}}\ndel train['employee_id']\ndel test['employee_id']\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.936987Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.937988Z\",\"iopub.status.idle\":\"2022-05-05T19:41:20.949407Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.937936Z\",\"shell.execute_reply\":\"2022-05-05T19:41:20.947883Z\"}}\ncats = [c for c in train.columns if train[c].dtypes=='object']\nnums = [c for c in train.columns if c not in cats]\nprint(cats)\nprint(nums)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.951175Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.95213Z\",\"iopub.status.idle\":\"2022-05-05T19:41:20.96043Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.952081Z\",\"shell.execute_reply\":\"2022-05-05T19:41:20.958681Z\"}}\ntrue_cats = ['department', 'region', 'education', 'gender', 'recruitment_channel','awards_won?', \n             'previous_year_rating','length_of_service', 'no_of_trainings']\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:20.962346Z\",\"iopub.execute_input\":\"2022-05-05T19:41:20.963276Z\",\"iopub.status.idle\":\"2022-05-05T19:41:21.920433Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:20.963212Z\",\"shell.execute_reply\":\"2022-05-05T19:41:21.91925Z\"}}\nsns.catplot(x=\"education\", y=\"is_promoted\", kind=\"bar\", data=train, height=4, aspect=2)\n\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:21.922199Z\",\"iopub.execute_input\":\"2022-05-05T19:41:21.922885Z\",\"iopub.status.idle\":\"2022-05-05T19:41:23.881173Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:21.922837Z\",\"shell.execute_reply\":\"2022-05-05T19:41:23.879916Z\"}}\n\nsns.catplot(x=\"gender\", y=\"is_promoted\", hue=\"department\", kind=\"bar\", data=train, height=6, aspect=2)\n\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:23.882908Z\",\"iopub.execute_input\":\"2022-05-05T19:41:23.88358Z\",\"iopub.status.idle\":\"2022-05-05T19:41:25.061808Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:23.883527Z\",\"shell.execute_reply\":\"2022-05-05T19:41:25.060638Z\"}}\nsns.catplot(x=\"gender\", y=\"is_promoted\", hue=\"recruitment_channel\", kind=\"bar\", data=train, height=6, aspect=2)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:25.063579Z\",\"iopub.execute_input\":\"2022-05-05T19:41:25.064289Z\",\"iopub.status.idle\":\"2022-05-05T19:41:27.502028Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:25.064237Z\",\"shell.execute_reply\":\"2022-05-05T19:41:27.500807Z\"}}\nsns.catplot(x=\"department\", y=\"is_promoted\", hue=\"recruitment_channel\", kind=\"bar\", data=train, height=6, aspect=4)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:27.503927Z\",\"iopub.execute_input\":\"2022-05-05T19:41:27.504793Z\",\"iopub.status.idle\":\"2022-05-05T19:41:28.111926Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:27.504737Z\",\"shell.execute_reply\":\"2022-05-05T19:41:28.111021Z\"}}\nsns.catplot(data=train, orient=\"h\", kind=\"box\", height=6, aspect=2)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:28.113647Z\",\"iopub.execute_input\":\"2022-05-05T19:41:28.114078Z\",\"iopub.status.idle\":\"2022-05-05T19:41:28.120805Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:28.114044Z\",\"shell.execute_reply\":\"2022-05-05T19:41:28.119532Z\"}}\ntrue_nums = [c for c in train.columns if c not in true_cats]\ntrue_nums.remove('is_promoted')\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:28.122724Z\",\"iopub.execute_input\":\"2022-05-05T19:41:28.123686Z\",\"iopub.status.idle\":\"2022-05-05T19:41:30.876448Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:28.123639Z\",\"shell.execute_reply\":\"2022-05-05T19:41:30.874929Z\"}}\nfrom scipy.stats import norm\n\nsns.set()\nsns.set_style(\"darkgrid\")\nsns.set_context(\"paper\")\nsns.set_context(\"paper\", font_scale=1.5, rc={\"lines.linewidth\": 1.5})\nfor c in true_nums:\n    \n    fig = plt.figure(constrained_layout=True, figsize=(14,5))\n    grid = gridspec.GridSpec(ncols=2, nrows=1, figure=fig)\n    ax1 = fig.add_subplot(grid[0, 0])\n    ax1.set_title('Histogram target=0')\n    sns.distplot(train[train.is_promoted==0].loc[:,c].dropna(),bins=30, fit=norm, norm_hist=True,color='teal' , ax = ax1)\n    ax2 = fig.add_subplot(grid[0, 1])\n    ax2.set_title('Histogram target=1')\n    sns.distplot(train[train.is_promoted==1].loc[:,c].dropna(), bins=30, fit=norm, norm_hist=True,color='orangered' , ax = ax2)\n    \n    \n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:30.881139Z\",\"iopub.execute_input\":\"2022-05-05T19:41:30.881621Z\",\"iopub.status.idle\":\"2022-05-05T19:41:30.938227Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:30.881573Z\",\"shell.execute_reply\":\"2022-05-05T19:41:30.936524Z\"}}\nmissingtr = train.isnull().sum()\nmissingtr[missingtr>0]\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:30.945888Z\",\"iopub.execute_input\":\"2022-05-05T19:41:30.948366Z\",\"iopub.status.idle\":\"2022-05-05T19:41:30.988107Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:30.948271Z\",\"shell.execute_reply\":\"2022-05-05T19:41:30.98696Z\"}}\nmissingts = test.isnull().sum()\nmissingts[missingts>0]\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:30.989668Z\",\"iopub.execute_input\":\"2022-05-05T19:41:30.990312Z\",\"iopub.status.idle\":\"2022-05-05T19:41:34.713652Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:30.990266Z\",\"shell.execute_reply\":\"2022-05-05T19:41:34.712363Z\"}}\nfrom scipy.stats import norm\n\nsns.set()\nsns.set_style(\"darkgrid\")\nsns.set_context(\"paper\")\nsns.set_context(\"paper\", font_scale=1.5, rc={\"lines.linewidth\": 1.5})\nfor c in true_nums:\n    ## Creating a customized chart. and giving in figsize and everything. \n    fig = plt.figure(constrained_layout=True, figsize=(12,6))\n    ## creating a grid of 3 cols and 3 rows. \n    grid = gridspec.GridSpec(ncols=3, nrows=3, figure=fig)\n    #gs = fig3.add_gridspec(3, 3)\n\n    ## Customizing the histogram grid. \n    ax1 = fig.add_subplot(grid[0, :2])\n    ## Set the title. \n    ax1.set_title('Histogram Train Vs Test')\n    ## plot the histogram. \n    sns.distplot(train.loc[:,c].dropna(),fit=norm, norm_hist=True,color='teal' , ax = ax1)\n    sns.distplot(test.loc[:,c].dropna(),  fit=norm, norm_hist=True,color='red' , ax = ax1)\n\n    # customizing the QQ_plot. \n    ax2 = fig.add_subplot(grid[1, :2])\n    ## Set the title. \n    ax2.set_title('QQ_plot')\n    ## Plotting the QQ_Plot. \n    stats.probplot(train.loc[:,c].dropna(), plot = ax2)\n\n    ## Customizing the Box Plot. \n    ax3 = fig.add_subplot(grid[:, 2])\n    ## Set title. \n    ax3.set_title('Box Plot')\n    ## Plotting the box plot. \n    sns.boxplot(train.loc[:,c].dropna(), orient='v', ax = ax3, color='white' );\n\n\n# %% [markdown]\n# #### Outliers\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:34.715379Z\",\"iopub.execute_input\":\"2022-05-05T19:41:34.716064Z\",\"iopub.status.idle\":\"2022-05-05T19:41:34.729003Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:34.716008Z\",\"shell.execute_reply\":\"2022-05-05T19:41:34.727465Z\"}}\ntrain = train[train.length_of_service<30]\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:34.731042Z\",\"iopub.execute_input\":\"2022-05-05T19:41:34.73182Z\",\"iopub.status.idle\":\"2022-05-05T19:41:35.264969Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:34.731771Z\",\"shell.execute_reply\":\"2022-05-05T19:41:35.263762Z\"}}\nimport seaborn as sns\nimport matplotlib.pyplot as plt\nplt.figure(figsize=(12, 8))\nsns.heatmap(pd.DataFrame(train, columns=train.columns).corr(), annot=True, center=True)\n\n# %% [markdown]\n# ### Building Several data with different cat encodings\n\n# %% [markdown]\n# #### Imputation\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:35.267669Z\",\"iopub.execute_input\":\"2022-05-05T19:41:35.268258Z\",\"iopub.status.idle\":\"2022-05-05T19:41:38.156071Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:35.268213Z\",\"shell.execute_reply\":\"2022-05-05T19:41:38.154929Z\"}}\nfrom sklearn.impute import SimpleImputer\ntarget = train.pop('is_promoted')\n\ndata = pd.concat([train, test], axis=0)\nsi = SimpleImputer(strategy= 'most_frequent')\ndata['education'] = si.fit_transform(data.education.values.reshape(-1, 1))\nsi = SimpleImputer(strategy='mean')\ndata['previous_year_rating'] = si.fit_transform(data.previous_year_rating.values.reshape(-1, 1))\ndata.isnull().sum()\n\n# %% [markdown]\n# #### label encoder\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:38.157954Z\",\"iopub.execute_input\":\"2022-05-05T19:41:38.158737Z\",\"iopub.status.idle\":\"2022-05-05T19:41:38.29521Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:38.15869Z\",\"shell.execute_reply\":\"2022-05-05T19:41:38.294023Z\"}}\nfrom sklearn.preprocessing import LabelEncoder\ndatal = data.copy()\nfor c in cats:\n    le = LabelEncoder()\n    datal[c] = le.fit_transform(datal[c])\n    \ntrain_le = datal.iloc[:len(train)]\ntest_le = datal.iloc[len(train):]\ntrain_le.shape, test_le.shape\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:38.296882Z\",\"iopub.execute_input\":\"2022-05-05T19:41:38.297327Z\",\"iopub.status.idle\":\"2022-05-05T19:41:38.361985Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:38.297268Z\",\"shell.execute_reply\":\"2022-05-05T19:41:38.360855Z\"}}\ndata_oh = pd.get_dummies(data)\ntrain_oh = data_oh.iloc[:len(train)]\ntest_oh = data_oh.iloc[len(train):]\ntrain_oh.shape, test_oh.shape\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:38.363836Z\",\"iopub.execute_input\":\"2022-05-05T19:41:38.364494Z\",\"iopub.status.idle\":\"2022-05-05T19:41:39.224899Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:38.364435Z\",\"shell.execute_reply\":\"2022-05-05T19:41:39.223757Z\"}}\nimport seaborn as sns\nimport matplotlib.pyplot as plt\nplt.figure(figsize=(15, 10))\nsns.heatmap(train_le.corr(), annot=True, center=True)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:39.227405Z\",\"iopub.execute_input\":\"2022-05-05T19:41:39.227895Z\",\"iopub.status.idle\":\"2022-05-05T19:41:39.3541Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:39.227853Z\",\"shell.execute_reply\":\"2022-05-05T19:41:39.353133Z\"}}\nfrom sklearn.preprocessing import StandardScaler, RobustScaler\nss = StandardScaler()\ntrain_le = ss.fit_transform(train_le)\ntest_le = ss.fit_transform(test_le)\n\ntrain_oh = ss.fit_transform(train_oh)\ntest_oh = ss.fit_transform(test_oh)\n\n# %% [markdown]\n# #THis Part of the logistic regression is not included  the REPORT. The F1-score is higher than the SVM results. \n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:39.361682Z\",\"iopub.execute_input\":\"2022-05-05T19:41:39.362066Z\",\"iopub.status.idle\":\"2022-05-05T19:41:39.843109Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:39.362025Z\",\"shell.execute_reply\":\"2022-05-05T19:41:39.84007Z\"}}\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import train_test_split, StratifiedKFold\nfrom sklearn.metrics import roc_auc_score\nscores = []\noof = np.zeros(len(train))\ny_le = target.values\nfolds = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n\nfor fold_, (train_ind, val_ind) in enumerate(folds.split(train_le, y_le)):\n    print('fold:', fold_)\n    X_tr, X_test = train_le[train_ind], train_le[val_ind]\n    y_tr, y_test = y_le[train_ind], y_le[val_ind]\n    clf = LogisticRegression(max_iter=200, random_state=2020)\n    clf.fit(X_tr, y_tr)\n    oof[val_ind]= clf.predict_proba(X_test)[:, 1]\n    y = clf.predict_proba(X_tr)[:,1] \n    print('train:',roc_auc_score(y_tr, y),'val :' , roc_auc_score(y_test, (oof[val_ind])))\n    print(20 * '-')\n    \n    scores.append(roc_auc_score(y_test, oof[val_ind]))\n    \n    \n    \nprint('log reg  roc_auc=  ', np.mean(scores))\nnp.save('oof_rf', oof)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:39.84496Z\",\"iopub.execute_input\":\"2022-05-05T19:41:39.845392Z\",\"iopub.status.idle\":\"2022-05-05T19:41:39.873097Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:39.845352Z\",\"shell.execute_reply\":\"2022-05-05T19:41:39.871892Z\"}}\nfrom sklearn.metrics import *\noof_rnd = np.where(oof > 0.5, 1, 0)\n\nf1_score(target, oof_rnd)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:39.874674Z\",\"iopub.execute_input\":\"2022-05-05T19:41:39.875382Z\",\"iopub.status.idle\":\"2022-05-05T19:41:39.901172Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:39.875334Z\",\"shell.execute_reply\":\"2022-05-05T19:41:39.899814Z\"}}\nrecall_score(target, oof_rnd)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:39.902758Z\",\"iopub.execute_input\":\"2022-05-05T19:41:39.903483Z\",\"iopub.status.idle\":\"2022-05-05T19:41:39.9082Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:39.903425Z\",\"shell.execute_reply\":\"2022-05-05T19:41:39.90666Z\"}}\n#Logistic with one-hot encoded data\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:39.910086Z\",\"iopub.execute_input\":\"2022-05-05T19:41:39.910869Z\",\"iopub.status.idle\":\"2022-05-05T19:41:40.968393Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:39.910813Z\",\"shell.execute_reply\":\"2022-05-05T19:41:40.967224Z\"}}\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import train_test_split, StratifiedKFold\nfrom sklearn.metrics import roc_auc_score\nscores = []\noof = np.zeros(len(train_oh))\ny_le = target.values\nfolds = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n\nfor fold_, (train_ind, val_ind) in enumerate(folds.split(train_oh, y_le)):\n    print('fold:', fold_)\n    X_tr, X_test = train_oh[train_ind], train_oh[val_ind]\n    y_tr, y_test = y_le[train_ind], y_le[val_ind]\n    clf = LogisticRegression(max_iter=200, random_state=2020)\n    clf.fit(X_tr, y_tr)\n    oof[val_ind]= clf.predict_proba(X_test)[:, 1]\n    y = clf.predict_proba(X_tr)[:,1] \n    print('train:',roc_auc_score(y_tr, y),'val :' , roc_auc_score(y_test, (oof[val_ind])))\n    print(20 * '-')\n    \n    scores.append(roc_auc_score(y_test, oof[val_ind]))\n    \n    \n    \nprint('log reg  roc_auc=  ', np.mean(scores))\nnp.save('oof_rf', oof)\n\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:40.971748Z\",\"iopub.execute_input\":\"2022-05-05T19:41:40.972469Z\",\"iopub.status.idle\":\"2022-05-05T19:41:40.998857Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:40.972403Z\",\"shell.execute_reply\":\"2022-05-05T19:41:40.99781Z\"}}\noof_rnd = np.where(oof > 0.5, 1, 0)\nf1_score(target, oof_rnd)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:41.000765Z\",\"iopub.execute_input\":\"2022-05-05T19:41:41.001281Z\",\"iopub.status.idle\":\"2022-05-05T19:41:41.028694Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:41.00122Z\",\"shell.execute_reply\":\"2022-05-05T19:41:41.027671Z\"}}\nrecall_score(target, oof_rnd)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:41.030397Z\",\"iopub.execute_input\":\"2022-05-05T19:41:41.030757Z\",\"iopub.status.idle\":\"2022-05-05T19:41:41.046524Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:41.030691Z\",\"shell.execute_reply\":\"2022-05-05T19:41:41.045366Z\"}}\nclass_names=np.array(['0','1'])\n\n# Function to plot the confusion Matrix\ndef plot_confusion_matrix(cm, classes,\n                          title='Confusion matrix',\n                          cmap=plt.cm.Blues):\n    \n    plt.imshow(cm, interpolation='nearest', cmap=cmap)\n    plt.title(title)\n    plt.colorbar()\n    tick_marks = np.arange(len(classes))\n    plt.xticks(tick_marks, classes, rotation=45)\n    plt.yticks(tick_marks, classes)\n\n    fmt = 'd' \n    thresh = cm.max() / 2.\n    for i in range (cm.shape[0]):\n        for j in range (cm.shape[1]):\n            \n            plt.text(j, i, format(cm[i, j], fmt),\n                 horizontalalignment=\"center\",\n                 color=\"white\" if cm[i, j] > thresh else \"black\")\n\n    plt.tight_layout()\n    plt.ylabel('True label')\n    plt.xlabel('Predicted label')\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:41:41.050903Z\",\"iopub.execute_input\":\"2022-05-05T19:41:41.051388Z\",\"iopub.status.idle\":\"2022-05-05T19:42:50.898105Z\",\"shell.execute_reply.started\":\"2022-05-05T19:41:41.051334Z\",\"shell.execute_reply\":\"2022-05-05T19:42:50.896841Z\"}}\ny = target\nx = train_le\n\n\nfrom sklearn.model_selection import train_test_split\nx_train, x_test, y_train, y_test = train_test_split(x,y,test_size = 0.2,random_state=1)\n\nfrom sklearn.svm import SVC\nsvm=SVC(random_state=1)\nsvm.fit(x_train,y_train)\nprint(\"train accuracy:\",svm.score(x_train,y_train))\nprint(\"test accuracy:\",svm.score(x_test,y_test))\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:42:50.899877Z\",\"iopub.execute_input\":\"2022-05-05T19:42:50.90038Z\",\"iopub.status.idle\":\"2022-05-05T19:42:54.041729Z\",\"shell.execute_reply.started\":\"2022-05-05T19:42:50.900334Z\",\"shell.execute_reply\":\"2022-05-05T19:42:54.040473Z\"}}\nfrom sklearn.metrics import classification_report\nprediction_SVM_all = svm.predict(x_test)\nprint(classification_report(y_test, prediction_SVM_all, target_names=class_names))\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:42:54.043528Z\",\"iopub.execute_input\":\"2022-05-05T19:42:54.043997Z\",\"iopub.status.idle\":\"2022-05-05T19:42:54.289003Z\",\"shell.execute_reply.started\":\"2022-05-05T19:42:54.043952Z\",\"shell.execute_reply\":\"2022-05-05T19:42:54.287684Z\"}}\n\ncm = confusion_matrix(y_test, prediction_SVM_all)\nplot_confusion_matrix(cm,class_names)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:42:54.290784Z\",\"iopub.execute_input\":\"2022-05-05T19:42:54.291587Z\",\"iopub.status.idle\":\"2022-05-05T19:44:33.824726Z\",\"shell.execute_reply.started\":\"2022-05-05T19:42:54.29154Z\",\"shell.execute_reply\":\"2022-05-05T19:44:33.823467Z\"}}\ny = target\nx = train_oh\n\n\nfrom sklearn.model_selection import train_test_split\nx_train, x_test, y_train, y_test = train_test_split(x,y,test_size = 0.2,random_state=1)\n\nfrom sklearn.svm import SVC\nsvm=SVC(random_state=1)\nsvm.fit(x_train,y_train)\nprint(\"train accuracy:\",svm.score(x_train,y_train))\nprint(\"test accuracy:\",svm.score(x_test,y_test))\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:44:33.826553Z\",\"iopub.execute_input\":\"2022-05-05T19:44:33.827253Z\",\"iopub.status.idle\":\"2022-05-05T19:44:42.292363Z\",\"shell.execute_reply.started\":\"2022-05-05T19:44:33.827202Z\",\"shell.execute_reply\":\"2022-05-05T19:44:42.291237Z\"}}\nprediction_SVM_all = svm.predict(x_test)\nprint(classification_report(y_test, prediction_SVM_all, target_names=class_names))\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:44:42.294829Z\",\"iopub.execute_input\":\"2022-05-05T19:44:42.295558Z\",\"iopub.status.idle\":\"2022-05-05T19:44:50.288907Z\",\"shell.execute_reply.started\":\"2022-05-05T19:44:42.295465Z\",\"shell.execute_reply\":\"2022-05-05T19:44:50.287741Z\"}}\n\nprediction_SVM_all = svm.predict(x_test)\ncm = confusion_matrix(y_test, prediction_SVM_all)\nplot_confusion_matrix(cm,class_names)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:44:50.290844Z\",\"iopub.execute_input\":\"2022-05-05T19:44:50.291646Z\",\"iopub.status.idle\":\"2022-05-05T19:45:23.47696Z\",\"shell.execute_reply.started\":\"2022-05-05T19:44:50.291598Z\",\"shell.execute_reply\":\"2022-05-05T19:45:23.475498Z\"}}\nfrom sklearn.ensemble import RandomForestClassifier\n\nrf = RandomForestClassifier(criterion='gini', \n                             n_estimators=700,\n                             min_samples_split=10,\n                             min_samples_leaf=1,\n                             max_features='auto',\n                             oob_score=True,\n                             random_state=1,\n                             n_jobs=-1)\nrf.fit(x_train,y_train)\nprint(\"%.4f\" % rf.oob_score_)\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:45:23.478453Z\",\"iopub.execute_input\":\"2022-05-05T19:45:23.478973Z\",\"iopub.status.idle\":\"2022-05-05T19:45:23.794751Z\",\"shell.execute_reply.started\":\"2022-05-05T19:45:23.478942Z\",\"shell.execute_reply\":\"2022-05-05T19:45:23.793515Z\"}}\nrf.feature_importances_\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2022-05-05T19:45:23.796847Z\",\"iopub.execute_input\":\"2022-05-05T19:45:23.797689Z\",\"iopub.status.idle\":\"2022-05-05T19:45:24.124986Z\",\"shell.execute_reply.started\":\"2022-05-05T19:45:23.797638Z\",\"shell.execute_reply\":\"2022-05-05T19:45:24.12377Z\"}}\npd.concat((pd.DataFrame(train.iloc[:, 1:].columns, columns = ['variable']), \n           pd.DataFrame(rf.feature_importances_, columns = ['importance'])), \n          axis = 1).sort_values(by='importance', ascending = False)[:5]","metadata":{"_uuid":"7d13a702-2f8e-4b5e-b5c5-15ad6fa8dac2","_cell_guid":"56551ed3-e264-452f-861f-90f1f540cba0","collapsed":false,"jupyter":{"outputs_hidden":false},"trusted":true},"execution_count":null,"outputs":[]}]}
+# -*- coding: utf-8 -*-
+"""logistic-reg-base-model-svm-random-forest.ipynb
+
+Automatically generated by Colaboratory.
+
+Original file is located at
+    https://colab.research.google.com/drive/1ddOC3GMF4js2W7tBsaxqwhEY1pOG8Dds
+"""
+
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import os
+
+"""### Load Data"""
+
+train = pd.read_csv('../input/hr-ana/train.csv')
+test = pd.read_csv('../input/hr-ana/test.csv')
+train.head()
+
+"""### EDA"""
+
+train.info()
+
+test.shape
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from scipy import stats
+import matplotlib.style as style
+
+sns.countplot(train.is_promoted)
+
+del train['employee_id']
+del test['employee_id']
+
+cats = [c for c in train.columns if train[c].dtypes=='object']
+nums = [c for c in train.columns if c not in cats]
+print(cats)
+print(nums)
+
+true_cats = ['department', 'region', 'education', 'gender', 'recruitment_channel','awards_won?', 
+             'previous_year_rating','length_of_service', 'no_of_trainings']
+
+sns.catplot(x="education", y="is_promoted", kind="bar", data=train, height=4, aspect=2)
+
+sns.catplot(x="gender", y="is_promoted", hue="department", kind="bar", data=train, height=6, aspect=2)
+
+sns.catplot(x="gender", y="is_promoted", hue="recruitment_channel", kind="bar", data=train, height=6, aspect=2)
+
+sns.catplot(x="department", y="is_promoted", hue="recruitment_channel", kind="bar", data=train, height=6, aspect=4)
+
+sns.catplot(data=train, orient="h", kind="box", height=6, aspect=2)
+
+true_nums = [c for c in train.columns if c not in true_cats]
+true_nums.remove('is_promoted')
+
+from scipy.stats import norm
+
+sns.set()
+sns.set_style("darkgrid")
+sns.set_context("paper")
+sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.5})
+for c in true_nums:
+    
+    fig = plt.figure(constrained_layout=True, figsize=(14,5))
+    grid = gridspec.GridSpec(ncols=2, nrows=1, figure=fig)
+    ax1 = fig.add_subplot(grid[0, 0])
+    ax1.set_title('Histogram target=0')
+    sns.distplot(train[train.is_promoted==0].loc[:,c].dropna(),bins=30, fit=norm, norm_hist=True,color='teal' , ax = ax1)
+    ax2 = fig.add_subplot(grid[0, 1])
+    ax2.set_title('Histogram target=1')
+    sns.distplot(train[train.is_promoted==1].loc[:,c].dropna(), bins=30, fit=norm, norm_hist=True,color='orangered' , ax = ax2)
+
+missingtr = train.isnull().sum()
+missingtr[missingtr>0]
+
+missingts = test.isnull().sum()
+missingts[missingts>0]
+
+from scipy.stats import norm
+
+sns.set()
+sns.set_style("darkgrid")
+sns.set_context("paper")
+sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.5})
+for c in true_nums:
+    ## Creating a customized chart. and giving in figsize and everything. 
+    fig = plt.figure(constrained_layout=True, figsize=(12,6))
+    ## creating a grid of 3 cols and 3 rows. 
+    grid = gridspec.GridSpec(ncols=3, nrows=3, figure=fig)
+    #gs = fig3.add_gridspec(3, 3)
+
+    ## Customizing the histogram grid. 
+    ax1 = fig.add_subplot(grid[0, :2])
+    ## Set the title. 
+    ax1.set_title('Histogram Train Vs Test')
+    ## plot the histogram. 
+    sns.distplot(train.loc[:,c].dropna(),fit=norm, norm_hist=True,color='teal' , ax = ax1)
+    sns.distplot(test.loc[:,c].dropna(),  fit=norm, norm_hist=True,color='red' , ax = ax1)
+
+    # customizing the QQ_plot. 
+    ax2 = fig.add_subplot(grid[1, :2])
+    ## Set the title. 
+    ax2.set_title('QQ_plot')
+    ## Plotting the QQ_Plot. 
+    stats.probplot(train.loc[:,c].dropna(), plot = ax2)
+
+    ## Customizing the Box Plot. 
+    ax3 = fig.add_subplot(grid[:, 2])
+    ## Set title. 
+    ax3.set_title('Box Plot')
+    ## Plotting the box plot. 
+    sns.boxplot(train.loc[:,c].dropna(), orient='v', ax = ax3, color='white' );
+
+"""#### Outliers"""
+
+train = train[train.length_of_service<30]
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+plt.figure(figsize=(12, 8))
+sns.heatmap(pd.DataFrame(train, columns=train.columns).corr(), annot=True, center=True)
+
+"""### Building Several data with different cat encodings
+
+#### Imputation
+"""
+
+from sklearn.impute import SimpleImputer
+target = train.pop('is_promoted')
+
+data = pd.concat([train, test], axis=0)
+si = SimpleImputer(strategy= 'most_frequent')
+data['education'] = si.fit_transform(data.education.values.reshape(-1, 1))
+si = SimpleImputer(strategy='mean')
+data['previous_year_rating'] = si.fit_transform(data.previous_year_rating.values.reshape(-1, 1))
+data.isnull().sum()
+
+"""#### label encoder"""
+
+from sklearn.preprocessing import LabelEncoder
+datal = data.copy()
+for c in cats:
+    le = LabelEncoder()
+    datal[c] = le.fit_transform(datal[c])
+    
+train_le = datal.iloc[:len(train)]
+test_le = datal.iloc[len(train):]
+train_le.shape, test_le.shape
+
+data_oh = pd.get_dummies(data)
+train_oh = data_oh.iloc[:len(train)]
+test_oh = data_oh.iloc[len(train):]
+train_oh.shape, test_oh.shape
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+plt.figure(figsize=(15, 10))
+sns.heatmap(train_le.corr(), annot=True, center=True)
+
+from sklearn.preprocessing import StandardScaler, RobustScaler
+ss = StandardScaler()
+train_le = ss.fit_transform(train_le)
+test_le = ss.fit_transform(test_le)
+
+train_oh = ss.fit_transform(train_oh)
+test_oh = ss.fit_transform(test_oh)
+
+"""#THis Part of the logistic regression is not included  the REPORT. The F1-score is higher than the SVM results. """
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.metrics import roc_auc_score
+scores = []
+oof = np.zeros(len(train))
+y_le = target.values
+folds = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+for fold_, (train_ind, val_ind) in enumerate(folds.split(train_le, y_le)):
+    print('fold:', fold_)
+    X_tr, X_test = train_le[train_ind], train_le[val_ind]
+    y_tr, y_test = y_le[train_ind], y_le[val_ind]
+    clf = LogisticRegression(max_iter=200, random_state=2020)
+    clf.fit(X_tr, y_tr)
+    oof[val_ind]= clf.predict_proba(X_test)[:, 1]
+    y = clf.predict_proba(X_tr)[:,1] 
+    print('train:',roc_auc_score(y_tr, y),'val :' , roc_auc_score(y_test, (oof[val_ind])))
+    print(20 * '-')
+    
+    scores.append(roc_auc_score(y_test, oof[val_ind]))
+    
+    
+    
+print('log reg  roc_auc=  ', np.mean(scores))
+np.save('oof_rf', oof)
+
+from sklearn.metrics import *
+oof_rnd = np.where(oof > 0.5, 1, 0)
+
+f1_score(target, oof_rnd)
+
+recall_score(target, oof_rnd)
+
+#Logistic with one-hot encoded data
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.metrics import roc_auc_score
+scores = []
+oof = np.zeros(len(train_oh))
+y_le = target.values
+folds = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+for fold_, (train_ind, val_ind) in enumerate(folds.split(train_oh, y_le)):
+    print('fold:', fold_)
+    X_tr, X_test = train_oh[train_ind], train_oh[val_ind]
+    y_tr, y_test = y_le[train_ind], y_le[val_ind]
+    clf = LogisticRegression(max_iter=200, random_state=2020)
+    clf.fit(X_tr, y_tr)
+    oof[val_ind]= clf.predict_proba(X_test)[:, 1]
+    y = clf.predict_proba(X_tr)[:,1] 
+    print('train:',roc_auc_score(y_tr, y),'val :' , roc_auc_score(y_test, (oof[val_ind])))
+    print(20 * '-')
+    
+    scores.append(roc_auc_score(y_test, oof[val_ind]))
+    
+    
+    
+print('log reg  roc_auc=  ', np.mean(scores))
+np.save('oof_rf', oof)
+
+oof_rnd = np.where(oof > 0.5, 1, 0)
+f1_score(target, oof_rnd)
+
+recall_score(target, oof_rnd)
+
+class_names=np.array(['0','1'])
+
+# Function to plot the confusion Matrix
+def plot_confusion_matrix(cm, classes,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = 'd' 
+    thresh = cm.max() / 2.
+    for i in range (cm.shape[0]):
+        for j in range (cm.shape[1]):
+            
+            plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+y = target
+x = train_le
+
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x,y,test_size = 0.2,random_state=1)
+
+from sklearn.svm import SVC
+svm=SVC(random_state=1)
+svm.fit(x_train,y_train)
+print("train accuracy:",svm.score(x_train,y_train))
+print("test accuracy:",svm.score(x_test,y_test))
+
+from sklearn.metrics import classification_report
+prediction_SVM_all = svm.predict(x_test)
+print(classification_report(y_test, prediction_SVM_all, target_names=class_names))
+
+cm = confusion_matrix(y_test, prediction_SVM_all)
+plot_confusion_matrix(cm,class_names)
+
+y = target
+x = train_oh
+
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x,y,test_size = 0.2,random_state=1)
+
+from sklearn.svm import SVC
+svm=SVC(random_state=1)
+svm.fit(x_train,y_train)
+print("train accuracy:",svm.score(x_train,y_train))
+print("test accuracy:",svm.score(x_test,y_test))
+
+prediction_SVM_all = svm.predict(x_test)
+print(classification_report(y_test, prediction_SVM_all, target_names=class_names))
+
+prediction_SVM_all = svm.predict(x_test)
+cm = confusion_matrix(y_test, prediction_SVM_all)
+plot_confusion_matrix(cm,class_names)
+
+from sklearn.ensemble import RandomForestClassifier
+
+rf = RandomForestClassifier(criterion='gini', 
+                             n_estimators=700,
+                             min_samples_split=10,
+                             min_samples_leaf=1,
+                             max_features='auto',
+                             oob_score=True,
+                             random_state=1,
+                             n_jobs=-1)
+rf.fit(x_train,y_train)
+print("%.4f" % rf.oob_score_)
+
+rf.feature_importances_
+
+pd.concat((pd.DataFrame(train.iloc[:, 1:].columns, columns = ['variable']), 
+           pd.DataFrame(rf.feature_importances_, columns = ['importance'])), 
+          axis = 1).sort_values(by='importance', ascending = False)[:5]
